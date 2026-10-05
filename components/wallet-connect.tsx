@@ -23,7 +23,7 @@ export function WalletConnect() {
   });
 
   const metaMask = useMemo(
-    () => connectors.find((item) => item.id === "io.metamask" || item.name.toLowerCase().includes("metamask")),
+    () => connectors.find((item) => item.id === "metaMask" || item.name.toLowerCase().includes("metamask")),
     [connectors],
   );
   const walletConnectConnector = useMemo(
