@@ -14,10 +14,9 @@ export async function POST(req:Request){
   const message="TaskMorph AI Power wallet login\n\nWallet: "+wallet+"\nNonce: "+nonce.nonce+"\nExpires: "+nonce.expiresAt.toISOString();
   const valid=await verifyMessage({address:wallet as `0x${string}`,message,signature:signature as `0x${string}`});
   if(!valid)return NextResponse.json({error:"Invalid wallet signature."},{status:401});
-  await db.$transaction([
-   db.authNonce.update({where:{id:nonce.id},data:{usedAt:new Date()}}),
-   db.user.upsert({where:{walletAddress:wallet},update:{},create:{walletAddress:wallet}})
-  ]);
+  const claimed=await db.authNonce.updateMany({where:{id:nonce.id,usedAt:null},data:{usedAt:new Date()}});
+  if(claimed.count!==1)return NextResponse.json({error:"Challenge already used."},{status:401});
+  await db.user.upsert({where:{walletAddress:wallet},update:{},create:{walletAddress:wallet}});
   const session=createSession(wallet); const jar=await cookies();
   jar.set(sessionCookieName,session.value,{httpOnly:true,sameSite:"lax",secure:process.env.NODE_ENV==="production",expires:session.expires,path:"/"});
   return NextResponse.json({authenticated:true,walletAddress:wallet});
