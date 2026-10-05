@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { requireWallet } from "@/lib/auth/require-wallet";
 import { createPublicClient,http } from "viem";
 import { sidraChain } from "@/lib/web3/sidra";
 import { buildFundCall,verifyEscrowFunding } from "@/lib/p2p/escrow";
@@ -9,7 +10,7 @@ export async function POST(req:Request,{params}:{params:Promise<{id:string}>}){
  if(!process.env.DATABASE_URL)return NextResponse.json({error:"DATABASE_URL is not configured."},{status:503});
  const {id}=await params;
  try{
-  const b=await req.json(); const wallet=String(b.walletAddress||"").toLowerCase(); const txHash=String(b.txHash||"");
+  const b=await req.json(); const wallet=await requireWallet(); const txHash=String(b.txHash||"");
   const order=await db.order.findUnique({where:{id},include:{buyer:true,seller:true}});
   if(!order)return NextResponse.json({error:"ORDER_NOT_FOUND"},{status:404});
   if(order.seller.walletAddress!==wallet)return NextResponse.json({error:"Only the SDA seller can fund escrow."},{status:403});
