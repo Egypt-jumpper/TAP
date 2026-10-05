@@ -26,7 +26,7 @@ export async function POST(req:Request){
    await tx.ad.update({where:{id:ad.id},data:{availableAmount:subSda(ad.availableAmount,amount),active:requested<available}});
    return tx.order.create({data:{
     adId:ad.id,buyerId:buyer.id,sellerId:seller.id,amount,price:ad.price,paymentAmount:formatUsdt(paymentUnits),
-    paymentAsset:"USDT",paymentNetwork:ad.paymentNetwork,paymentTokenContract:ad.paymentTokenContract,paymentReceiver:seller.walletAddress,status:"CREATED",
+    paymentAsset:"USDT",paymentNetwork:ad.paymentNetwork,paymentTokenContract:ad.paymentTokenContract,paymentSender:(ad.side==="SELL"?buyer.walletAddress:seller.walletAddress),paymentReceiver:(ad.side==="SELL"?seller.walletAddress:buyer.walletAddress),status:"CREATED",
     expiresAt:new Date(Date.now()+ad.paymentWindowMinutes*60000)
    }});
   },{isolationLevel:"Serializable"});
