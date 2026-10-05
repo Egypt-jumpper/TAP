@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { getPaymentNetwork } from "@/lib/p2p/networks";
 import { requireWallet } from "@/lib/auth/require-wallet";
@@ -10,7 +11,7 @@ export async function POST(req:Request){
   const b=await req.json(); const adId=String(b.adId||""); const wallet=await requireWallet(); const amount=String(b.amount||"");
   if(!adId||!wallet||!amount)return NextResponse.json({error:"adId, walletAddress and amount are required."},{status:400});
   parseSda(amount);
-  const result=await db.$transaction(async tx=>{
+  const result=await db.$transaction(async (tx: Prisma.TransactionClient)=>{
    const ad=await tx.ad.findUnique({where:{id:adId}});
    if(!ad||!ad.active)throw new Error("AD_NOT_FOUND");
    const network=getPaymentNetwork(ad.paymentNetwork);
