@@ -1,7 +1,7 @@
 import { defineConfig, globalIgnores } from "eslint/config";
-import nextVitals from "eslint-config-next/core-web-vitals.js";
+import { flatConfig } from "@next/eslint-plugin-next";
 
-export default defineConfig(
-  ...nextVitals,
+export default defineConfig([
+  flatConfig.coreWebVitals,
   globalIgnores([".next/**", "node_modules/**"])
-);
+]);
