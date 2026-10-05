@@ -1,0 +1,50 @@
+generator client { provider = "prisma-client-js" }
+datasource db { provider = "postgresql" url = env("DATABASE_URL") }
+
+enum AdSide { BUY SELL }
+enum OrderStatus { CREATED FUNDED ACCEPTED PAYMENT_PENDING PAYMENT_SENT SELLER_CONFIRMING COMPLETED CANCELLED EXPIRED DISPUTED REFUNDED }
+
+model User {
+ id String @id @default(cuid())
+ walletAddress String @unique
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ ads Ad[]
+ buyerOrders Order[] @relation("buyer")
+ sellerOrders Order[] @relation("seller")
+}
+model Ad {
+ id String @id @default(cuid())
+ userId String
+ user User @relation(fields:[userId],references:[id])
+ side AdSide
+ asset String
+ price String
+ availableAmount String
+ minAmount String
+ maxAmount String
+ paymentMethods String
+ terms String?
+ active Boolean @default(true)
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ orders Order[]
+}
+model Order {
+ id String @id @default(cuid())
+ adId String
+ ad Ad @relation(fields:[adId],references:[id])
+ buyerId String
+ buyer User @relation("buyer",fields:[buyerId],references:[id])
+ sellerId String
+ seller User @relation("seller",fields:[sellerId],references:[id])
+ amount String
+ price String
+ status OrderStatus @default(CREATED)
+ escrowContract String?
+ escrowTxHash String?
+ paymentTxHash String?
+ expiresAt DateTime?
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+}
