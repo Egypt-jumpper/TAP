@@ -1,0 +1,3 @@
+import Link from "next/link";
+import { WalletConnect } from "@/components/wallet-connect";
+export default function Page(){return <main className="container"><nav className="nav"><Link href="/"><strong>TAP</strong></Link><div><Link href="/p2p">P2P</Link><WalletConnect/></div></nav><section className="hero"><span className="eyebrow">P2P MARKETPLACE</span><h1>ORDERS</h1><p>This route is reserved for the production P2P workflow. No fake orders, balances, escrow or payment confirmations are shown.</p><WalletConnect/></section><div className="card"><h3>Escrow-first</h3><p>Orders will be backed by verifiable on-chain state and explicit trade status.</p></div></main>}
