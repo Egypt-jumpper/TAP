@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useAccount, useBalance, useConnect, useDisconnect, useSwitchChain } from "wagmi";
+import { useAccount, useBalance, useConnect, useDisconnect, useSignMessage, useSwitchChain } from "wagmi";
 import { sidraChain } from "@/lib/web3/sidra";
 
 function shortAddress(address?: string) {
@@ -14,7 +14,7 @@ export function WalletConnect() {
   const { disconnect } = useDisconnect();
   const { switchChain, isPending: switching } = useSwitchChain();
   const [open, setOpen] = useState(false);
-  const [verified, setVerified] = useState(false);
+  const [verified, setVerified] = useState(false);\n  const [authenticated, setAuthenticated] = useState(false);\n  const [authError, setAuthError] = useState<string | null>(null);\n  const { signMessageAsync, isPending: signing } = useSignMessage();
 
   const { data: nativeBalance, isLoading: balanceLoading, isError: balanceError } = useBalance({
     address,
