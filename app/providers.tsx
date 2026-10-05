@@ -2,7 +2,9 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createConfig, http, WagmiProvider } from "wagmi";
-import { injected, metaMask, walletConnect } from "wagmi/connectors";
+import { injected } from "wagmi/connectors/injected";
+import { metaMask } from "wagmi/connectors/metaMask";
+import { walletConnect } from "wagmi/connectors/walletConnect";
 import { sidraChain } from "@/lib/web3/sidra";
 import { useState } from "react";
 
