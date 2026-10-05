@@ -2,13 +2,14 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createConfig, http, WagmiProvider } from "wagmi";
-import { injected, walletConnect } from "wagmi/connectors";
+import { injected, metaMask, walletConnect } from "wagmi/connectors";
 import { sidraChain } from "@/lib/web3/sidra";
 import { useState } from "react";
 
 const walletConnectProjectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID;
 
 const connectors = [
+  metaMask(),
   injected({ shimDisconnect: true }),
   ...(walletConnectProjectId
     ? [walletConnect({ projectId: walletConnectProjectId, showQrModal: true })]
