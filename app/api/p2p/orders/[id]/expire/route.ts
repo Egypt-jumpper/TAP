@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { addSda } from "@/lib/p2p/usdt-amount";
 import { assertTransition } from "@/lib/p2p/state";
@@ -7,7 +8,7 @@ export async function POST(_:Request,{params}:{params:Promise<{id:string}>}){
  if(!process.env.DATABASE_URL)return NextResponse.json({error:"DATABASE_URL is not configured."},{status:503});
  const {id}=await params;
  try{
-  const result=await db.$transaction(async tx=>{
+  const result=await db.$transaction(async (tx: Prisma.TransactionClient)=>{
    const order=await tx.order.findUnique({where:{id},include:{ad:true}});
    if(!order)throw new Error("ORDER_NOT_FOUND");
    if(!order.expiresAt||order.expiresAt>new Date())throw new Error("NOT_EXPIRED");
