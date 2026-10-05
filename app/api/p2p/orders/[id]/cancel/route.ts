@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { requireWallet } from "@/lib/auth/require-wallet";
 import { addSda } from "@/lib/p2p/usdt-amount";
 import { assertTransition } from "@/lib/p2p/state";
 
 export async function POST(req:Request,{params}:{params:Promise<{id:string}>}){
  if(!process.env.DATABASE_URL)return NextResponse.json({error:"DATABASE_URL is not configured."},{status:503});
- const {id}=await params; const body=await req.json(); const wallet=String(body.walletAddress||"").toLowerCase();
+ const {id}=await params; const body=await req.json(); const wallet=await requireWallet();
  try{
   const result=await db.$transaction(async tx=>{
    const order=await tx.order.findUnique({where:{id},include:{ad:true,buyer:true,seller:true}});
