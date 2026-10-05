@@ -14,7 +14,8 @@ export async function POST(req:Request,{params}:{params:Promise<{id:string}>}){
   if(!txHash||!wallet)return NextResponse.json({error:"walletAddress and txHash are required."},{status:400});
   const order=await db.order.findUnique({where:{id},include:{buyer:true,seller:true}});
   if(!order)return NextResponse.json({error:"ORDER_NOT_FOUND"},{status:404});
-  const payer=order.paymentSender;\n  if(!payer||payer.toLowerCase()!==wallet.toLowerCase())return NextResponse.json({error:"Only the USDT payer can submit payment proof."},{status:403});
+  const payer=order.paymentSender;
+  if(!payer||payer.toLowerCase()!==wallet.toLowerCase())return NextResponse.json({error:"Only the USDT payer can submit payment proof."},{status:403});
   if(!["CREATED","FUNDED","ACCEPTED","PAYMENT_PENDING"].includes(order.status))return NextResponse.json({error:"ORDER_NOT_PAYABLE",status:order.status},{status:409});
   const expectedAmount=parseUsdt(order.paymentAmount);
   const client=getUsdtPublicClient(order.paymentNetwork);
