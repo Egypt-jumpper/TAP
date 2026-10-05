@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { requireWallet } from "@/lib/auth/require-wallet";
 import { createPublicClient,http,encodeFunctionData,decodeFunctionData } from "viem";
 import { sidraChain } from "@/lib/web3/sidra";
 import { ESCROW_ABI,escrowOrderId } from "@/lib/p2p/escrow";
@@ -7,7 +8,7 @@ import { assertTransition } from "@/lib/p2p/state";
 function client(){return createPublicClient({chain:sidraChain,transport:http(process.env.NEXT_PUBLIC_SIDRA_RPC_URL||"https://node.sidrachain.com/")});}
 export async function POST(req:Request,{params}:{params:Promise<{id:string}>}){
  if(!process.env.DATABASE_URL||!process.env.ESCROW_CONTRACT_ADDRESS)return NextResponse.json({error:"Escrow is not configured."},{status:503});
- const {id}=await params; const b=await req.json(); const wallet=String(b.walletAddress||"").toLowerCase(); const txHash=String(b.txHash||"");
+ const {id}=await params; const b=await req.json(); const wallet=await requireWallet(); const txHash=String(b.txHash||"");
  try{
   const order=await db.order.findUnique({where:{id},include:{buyer:true,seller:true}}); if(!order)return NextResponse.json({error:"ORDER_NOT_FOUND"},{status:404});
   if(order.buyer.walletAddress!==wallet&&order.seller.walletAddress!==wallet)return NextResponse.json({error:"FORBIDDEN"},{status:403});
