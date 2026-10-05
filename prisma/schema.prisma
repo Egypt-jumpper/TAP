@@ -13,6 +13,7 @@ model User {
  buyerOrders Order[] @relation("buyer")
  sellerOrders Order[] @relation("seller")
 }
+
 model Ad {
  id String @id @default(cuid())
  userId String
@@ -23,14 +24,20 @@ model Ad {
  availableAmount String
  minAmount String
  maxAmount String
+ paymentAsset String @default("USDT")
+ paymentNetwork String
+ paymentTokenContract String
  paymentMethods String
  terms String?
  active Boolean @default(true)
+ paymentWindowMinutes Int @default(30)
  createdAt DateTime @default(now())
  updatedAt DateTime @updatedAt
  orders Order[]
  @@index([active, side, createdAt])
+ @@index([paymentNetwork, paymentTokenContract, active])
 }
+
 model Order {
  id String @id @default(cuid())
  adId String
@@ -39,14 +46,25 @@ model Order {
  buyer User @relation("buyer",fields:[buyerId],references:[id])
  sellerId String
  seller User @relation("seller",fields:[sellerId],references:[id])
- @@index([status, createdAt])
  amount String
  price String
+ paymentAmount String
+ paymentAsset String @default("USDT")
+ paymentNetwork String
+ paymentTokenContract String
+ paymentSender String?
+ paymentReceiver String
+ paymentConfirmations Int @default(0)
+ paymentVerificationReason String?
+ paymentVerifiedAt DateTime?
  status OrderStatus @default(CREATED)
  escrowContract String?
  escrowTxHash String?
+ escrowOrderId String?
  paymentTxHash String?
  expiresAt DateTime?
  createdAt DateTime @default(now())
  updatedAt DateTime @updatedAt
+ @@index([status, createdAt])
+ @@index([paymentNetwork, paymentTxHash])
 }
