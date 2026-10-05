@@ -29,6 +29,7 @@ model Ad {
  createdAt DateTime @default(now())
  updatedAt DateTime @updatedAt
  orders Order[]
+ @@index([active, side, createdAt])
 }
 model Order {
  id String @id @default(cuid())
@@ -38,6 +39,7 @@ model Order {
  buyer User @relation("buyer",fields:[buyerId],references:[id])
  sellerId String
  seller User @relation("seller",fields:[sellerId],references:[id])
+ @@index([status, createdAt])
  amount String
  price String
  status OrderStatus @default(CREATED)
