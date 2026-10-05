@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getPaymentNetwork } from "@/lib/p2p/networks";
+import { requireWallet } from "@/lib/auth/require-wallet";
 import { formatUsdt, multiplyUsdt, parseSda, subSda } from "@/lib/p2p/usdt-amount";
 
 export async function POST(req:Request){
  if(!process.env.DATABASE_URL)return NextResponse.json({error:"DATABASE_URL is not configured."},{status:503});
  try{
-  const b=await req.json(); const adId=String(b.adId||""); const wallet=String(b.walletAddress||b.buyerWallet||"").toLowerCase(); const amount=String(b.amount||"");
+  const b=await req.json(); const adId=String(b.adId||""); const wallet=await requireWallet(); const amount=String(b.amount||"");
   if(!adId||!wallet||!amount)return NextResponse.json({error:"adId, walletAddress and amount are required."},{status:400});
   parseSda(amount);
   const result=await db.$transaction(async tx=>{
