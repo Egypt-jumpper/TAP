@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { requireWallet } from "@/lib/auth/require-wallet";
 const ACTIVE=["CREATED","FUNDED","ACCEPTED","PAYMENT_PENDING","PAYMENT_SENT","SELLER_CONFIRMING","DISPUTED"] as const;
 export async function GET(req:Request){
  if(!process.env.DATABASE_URL)return NextResponse.json({orders:[],configured:false});
