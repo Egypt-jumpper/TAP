@@ -1,4 +1,31 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-export async function GET(){if(!process.env.DATABASE_URL)return NextResponse.json({ads:[],configured:false});return NextResponse.json({ads:await db.ad.findMany({where:{active:true},orderBy:{createdAt:"desc"}}),configured:true});}
-export async function POST(req:Request){if(!process.env.DATABASE_URL)return NextResponse.json({error:"DATABASE_URL is not configured."},{status:503});const body=await req.json();const required=["walletAddress","side","price","availableAmount","minAmount","maxAmount","paymentMethods"];for(const k of required)if(!body[k])return NextResponse.json({error:"Missing "+k},{status:400});const user=await db.user.upsert({where:{walletAddress:String(body.walletAddress).toLowerCase()},update:{},create:{walletAddress:String(body.walletAddress).toLowerCase()}});const ad=await db.ad.create({data:{userId:user.id,side:body.side,asset:"SDA",price:String(body.price),availableAmount:String(body.availableAmount),minAmount:String(body.minAmount),maxAmount:String(body.maxAmount),paymentMethods:JSON.stringify(body.paymentMethods),terms:body.terms?String(body.terms):null}});return NextResponse.json({ad},{status:201});}
+import { getPaymentNetwork } from "@/lib/p2p/networks";
+import { parseSda, parseUsdt } from "@/lib/p2p/usdt-amount";
+
+export async function GET(){
+ if(!process.env.DATABASE_URL)return NextResponse.json({ads:[],configured:false});
+ const ads=await db.ad.findMany({where:{active:true},orderBy:{createdAt:"desc"}});
+ return NextResponse.json({ads,configured:true});
+}
+
+export async function POST(req:Request){
+ if(!process.env.DATABASE_URL)return NextResponse.json({error:"DATABASE_URL is not configured."},{status:503});
+ try{
+  const b=await req.json();
+  for(const k of ["walletAddress","side","price","availableAmount","minAmount","maxAmount","paymentNetwork","paymentMethods"])if(!b[k])return NextResponse.json({error:`Missing ${k}`},{status:400});
+  if(b.side!=="BUY"&&b.side!=="SELL")return NextResponse.json({error:"side must be BUY or SELL."},{status:400});
+  const network=getPaymentNetwork(String(b.paymentNetwork));
+  if(!network?.enabled||!network.usdtContract)return NextResponse.json({error:"Selected USDT network is not configured for verified payments."},{status:400});
+  parseUsdt(String(b.price)); parseSda(String(b.availableAmount)); parseSda(String(b.minAmount)); parseSda(String(b.maxAmount));
+  const wallet=String(b.walletAddress).toLowerCase();
+  const user=await db.user.upsert({where:{walletAddress:wallet},update:{},create:{walletAddress:wallet}});
+  const ad=await db.ad.create({data:{
+   userId:user.id,side:b.side,asset:"SDA",price:String(b.price),availableAmount:String(b.availableAmount),
+   minAmount:String(b.minAmount),maxAmount:String(b.maxAmount),paymentAsset:"USDT",paymentNetwork:network.id,
+   paymentTokenContract:network.usdtContract,paymentMethods:JSON.stringify(b.paymentMethods),terms:b.terms?String(b.terms):null,
+   paymentWindowMinutes:Math.max(5,Math.min(1440,Number(b.paymentWindowMinutes||30)))
+  }});
+  return NextResponse.json({ad},{status:201});
+ }catch(e){return NextResponse.json({error:(e as Error).message},{status:400});}
+}
